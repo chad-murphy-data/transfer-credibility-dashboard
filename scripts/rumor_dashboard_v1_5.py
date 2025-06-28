@@ -63,27 +63,33 @@ rumors = filtered[filtered["is_transfer_rumor"] == True].copy()
 rumors["Label"] = rumors["player"].fillna("Unknown") + " → " + rumors["destination_club"].fillna("???")
 rumors["certainty_score"] = pd.to_numeric(rumors["certainty_score"], errors="coerce").clip(upper=1.0)
 
+# Top 10 chart# Top 10 chart
 # Top 10 chart
 st.subheader("🔝 Top 10 Credible Transfer Rumors")
-top10 = rumors.sort_values("certainty_score", ascending=False).head(10)
 
-# Fix missing values in label fields to avoid chart errors
+top10 = rumors.sort_values("certainty_score", ascending=False).head(10).copy()
+
+# 🧪 Debug: see what's inside
+st.write("🧪 TOP 10 RAW", top10)
+st.write("✅ Top 10 shape:", top10.shape)
+st.write("✅ Columns:", top10.columns.tolist())
+st.write("✅ Certainty Score Dtype:", top10["certainty_score"].dtype)
+
+# Prep for chart
 top10["player"] = top10["player"].fillna("Unknown")
 top10["destination_club"] = top10["destination_club"].fillna("???")
 top10["Label"] = top10["player"] + " → " + top10["destination_club"]
-top10["certainty_score"] = top10["certainty_score"].clip(upper=1.0)
 
 if top10.empty:
     st.info("No rumors match your filters.")
 else:
     chart = alt.Chart(top10).mark_bar().encode(
-        x=alt.X("certainty_score", title="Certainty Score", scale=alt.Scale(domain=[0, 1])),
+        x=alt.X("certainty_score", title="Certainty Score"),  # don't limit domain for now
         y=alt.Y("Label", sort="-x", title="", axis=alt.Axis(labelLimit=300)),
         tooltip=["player", "origin_club", "destination_club", "status", "certainty_score", "reason"]
     ).properties(height=400)
 
     st.altair_chart(chart, use_container_width=True)
-
 
 # Full table
 st.subheader(f"📋 {len(rumors)} Matching Transfer Rumors")
