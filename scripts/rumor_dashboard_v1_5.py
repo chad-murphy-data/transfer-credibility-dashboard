@@ -71,10 +71,11 @@ if top10.empty:
     st.info("No rumors match your filters.")
 else:
     chart = alt.Chart(top10).mark_bar().encode(
-        x=alt.X("certainty_score", title="Certainty Score", scale=alt.Scale(domain=[0, 1])),
-        y=alt.Y("Label", sort="-x", title=""),
-        tooltip=["player", "origin_club", "destination_club", "status", "certainty_score", "reason"]
-    ).properties(height=400)
+    x=alt.X("certainty_score", title="Certainty Score", scale=alt.Scale(domain=[0, 1])),
+    y=alt.Y("Label", sort="-x", title="", axis=alt.Axis(labelLimit=300)),
+    tooltip=["player", "origin_club", "destination_club", "status", "certainty_score", "reason"]
+).properties(height=400)
+
 
     st.altair_chart(chart, use_container_width=True)
 
