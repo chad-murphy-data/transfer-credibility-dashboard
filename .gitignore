@@ -1,0 +1,12 @@
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore Python + Jupyter junk
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Ignore local secrets or scratch space
+.env
+archive/
