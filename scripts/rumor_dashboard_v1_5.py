@@ -56,26 +56,32 @@ if club_choice != "All":
         (filtered["destination_club"] == club_choice) | (filtered["origin_club"] == club_choice)
     ]
 
-# Filter only rumors
-rumors = filtered[filtered["is_transfer_rumor"] == True].copy()
+# Rumor logic — temporarily include everything
+st.write("🧪 Filtered rows before rumor filter:", len(filtered))
 
-# Prepare for display
+if "is_transfer_rumor" in filtered.columns:
+    st.write("🧪 Rows where is_transfer_rumor == True:", filtered["is_transfer_rumor"].sum())
+else:
+    st.write("⚠️ 'is_transfer_rumor' column missing from filtered DataFrame!")
+
+rumors = filtered.copy()
+
+# Prep for chart
 rumors["Label"] = rumors["player"].fillna("Unknown") + " → " + rumors["destination_club"].fillna("???")
 rumors["certainty_score"] = pd.to_numeric(rumors["certainty_score"], errors="coerce").clip(upper=1.0)
 
-# Top 10 chart# Top 10 chart
-# Top 10 chart
+# 🔝 Top 10 chart
 st.subheader("🔝 Top 10 Credible Transfer Rumors")
-
 top10 = rumors.sort_values("certainty_score", ascending=False).head(10).copy()
 
-# 🧪 Debug: see what's inside
+# Debug block
 st.write("🧪 TOP 10 RAW", top10)
 st.write("✅ Top 10 shape:", top10.shape)
 st.write("✅ Columns:", top10.columns.tolist())
 st.write("✅ Certainty Score Dtype:", top10["certainty_score"].dtype)
+st.write("✅ Certainty Score values:", top10["certainty_score"].tolist())
 
-# Prep for chart
+# Chart rendering
 top10["player"] = top10["player"].fillna("Unknown")
 top10["destination_club"] = top10["destination_club"].fillna("???")
 top10["Label"] = top10["player"] + " → " + top10["destination_club"]
@@ -84,7 +90,7 @@ if top10.empty:
     st.info("No rumors match your filters.")
 else:
     chart = alt.Chart(top10).mark_bar().encode(
-        x=alt.X("certainty_score", title="Certainty Score"),  # don't limit domain for now
+        x=alt.X("certainty_score", title="Certainty Score"),
         y=alt.Y("Label", sort="-x", title="", axis=alt.Axis(labelLimit=300)),
         tooltip=["player", "origin_club", "destination_club", "status", "certainty_score", "reason"]
     ).properties(height=400)
