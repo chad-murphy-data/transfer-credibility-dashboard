@@ -71,6 +71,7 @@ top10 = rumors.sort_values("certainty_score", ascending=False).head(10)
 top10["player"] = top10["player"].fillna("Unknown")
 top10["destination_club"] = top10["destination_club"].fillna("???")
 top10["Label"] = top10["player"] + " → " + top10["destination_club"]
+top10["certainty_score"] = top10["certainty_score"].clip(upper=1.0)
 
 if top10.empty:
     st.info("No rumors match your filters.")
