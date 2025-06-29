@@ -45,13 +45,13 @@ club_choice = st.sidebar.selectbox("Club (To or From)", options=["All"] + clubs)
 min_cert, max_cert = float(df["certainty_score"].min()), float(df["certainty_score"].max())
 score_range = st.sidebar.slider("Certainty Score Range", min_value=0.0, max_value=1.0, value=(min_cert, max_cert), step=0.05)
 
-# Base filters
+# Apply base filters with correct parentheses
 filtered = df[
     (df["status_bin"].isin(selected_bins)) &
     (df["certainty_score"].between(score_range[0], score_range[1]))
 ]
 
-# Club filtering
+# Club filter logic
 if club_choice != "All":
     filtered = filtered[
         (filtered["destination_club"] == club_choice) | (filtered["origin_club"] == club_choice)
@@ -89,17 +89,7 @@ if "certainty_bin_label" in filtered.columns:
     if show_certainty_bins:
         available_bins = sorted(filtered["certainty_bin_label"].dropna().unique())
         selected_certainty_bins = st.sidebar.multiselect("Certainty Category (MITCHARD)", options=available_bins, default=available_bins)
-        filtered = filtered[filtered["certainty_bin_label"]
-
-# Optional toggle to show narrative speculation filters
-show_speculation_filter = st.sidebar.checkbox("Show narrative speculation filters (Laporta, Galactico, etc.)", value=False)
-
-if show_speculation_filter and "speculation_flag" in filtered.columns:
-    available_flags = sorted(filtered["speculation_flag"].dropna().unique())
-    selected_flags = st.sidebar.multiselect("Speculation Tags", options=available_flags, default=available_flags)
-    filtered = filtered[filtered["speculation_flag"].isin(selected_flags)]
-
-.isin(selected_certainty_bins)]
+        filtered = filtered[filtered["certainty_bin_label"].isin(selected_certainty_bins)]
 
 .isin(selected_bins)) &
     (df["certainty_score"].between(score_range[0], score_range[1]))
