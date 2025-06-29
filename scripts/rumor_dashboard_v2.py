@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 
 # Load structured file (you can update the path to the new dataset)
-df = pd.read_csv("data/transfer_rumors_with_tags_and_bins.csv")
+df = pd.read_csv("data/fabrizio_may_to_june_structured_v2.csv")
 
 st.set_page_config(page_title="Transfer Credibility Dashboard (v2)", layout="wide")
 st.title("🎯 Transfer Credibility Dashboard (Powered by MITCHARD v2)")
@@ -47,7 +47,33 @@ score_range = st.sidebar.slider("Certainty Score Range", min_value=0.0, max_valu
 
 # Apply filters
 filtered = df[
-    (df["status_bin"].isin(selected_bins)) &
+    (df["status_bin"]
+
+# Optional toggle to hide completed transfers
+hide_completed = st.sidebar.checkbox("Hide completed transfers (Confirmed / Deal Agreed / Exit)", value=False)
+
+if hide_completed:
+    filtered = filtered[~filtered["status_bin"].isin(["Confirmed", "Deal Agreed", "Confirmed Exit"])]
+
+# Optional toggle to show MITCHARD certainty bin filters
+if "certainty_bin_label" in filtered.columns:
+    show_certainty_bins = st.sidebar.checkbox("Show MITCHARD bins (e.g. 'Ghosted', 'No Shot')", value=False)
+    if show_certainty_bins:
+        available_bins = sorted(filtered["certainty_bin_label"].dropna().unique())
+        selected_certainty_bins = st.sidebar.multiselect("Certainty Category (MITCHARD)", options=available_bins, default=available_bins)
+        filtered = filtered[filtered["certainty_bin_label"]
+
+# Optional toggle to show narrative speculation filters
+show_speculation_filter = st.sidebar.checkbox("Show narrative speculation filters (Laporta, Galactico, etc.)", value=False)
+
+if show_speculation_filter and "speculation_flag" in filtered.columns:
+    available_flags = sorted(filtered["speculation_flag"].dropna().unique())
+    selected_flags = st.sidebar.multiselect("Speculation Tags", options=available_flags, default=available_flags)
+    filtered = filtered[filtered["speculation_flag"].isin(selected_flags)]
+
+.isin(selected_certainty_bins)]
+
+.isin(selected_bins)) &
     (df["certainty_score"].between(score_range[0], score_range[1]))
 ]
 
