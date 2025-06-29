@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 
 # Load structured file (you can update the path to the new dataset)
-df = pd.read_csv("data/transfer_rumors_with_tags_and_bins.csv")
+df = pd.read_csv("data/fabrizio_may_to_june_structured_v2.csv")
 
 st.set_page_config(page_title="Transfer Credibility Dashboard (v2)", layout="wide")
 st.title("🎯 Transfer Credibility Dashboard (Powered by MITCHARD v2)")
@@ -63,20 +63,32 @@ rumors = filtered[filtered["is_transfer_rumor"] == True].copy()
 rumors["Label"] = rumors["player"].fillna("Unknown") + " → " + rumors["destination_club"].fillna("???")
 rumors["certainty_score"] = pd.to_numeric(rumors["certainty_score"], errors="coerce").clip(upper=1.0)
 
-# Top 10 by market value chart
-st.subheader("💸 Top 10 Highest-Value Rumors")
-top10_value = rumors.sort_values("market_value_eur", ascending=False).head(10).copy()
-top10_value["player"] = top10_value["player"].fillna("Unknown")
-top10_value["destination_club"] = top10_value["destination_club"].fillna("???")
-top10_value["Label"] = top10_value["player"] + " → " + top10_value["destination_club"]
+# Highest-value rumors (deduplicated) by probability
+st.subheader("💸 Top 10 Highest-Value Rumors (by Transfer Probability)")
 
-if top10_value.empty:
+# Deduplicate: keep highest-probability rumor per player → destination
+deduped = (
+    rumors
+    .sort_values("certainty_score", ascending=False)
+    .drop_duplicates(subset=["player", "destination_club"])
+    .copy()
+)
+
+# Fill missing values
+deduped["player"] = deduped["player"].fillna("Unknown")
+deduped["destination_club"] = deduped["destination_club"].fillna("???")
+deduped["Label"] = deduped["player"] + " → " + deduped["destination_club"]
+
+# Sort by player value to highlight high-value targets
+top10_prob = deduped.sort_values("market_value_eur", ascending=False).head(10)
+
+if top10_prob.empty:
     st.info("No rumors match your filters.")
 else:
-    chart = alt.Chart(top10_value).mark_bar().encode(
-        x=alt.X("market_value_eur", title="Market Value (€)", scale=alt.Scale(zero=True)),
+    chart = alt.Chart(top10_prob).mark_bar().encode(
+        x=alt.X("certainty_score", title="Probability of Transfer", scale=alt.Scale(domain=[0,1])),
         y=alt.Y("Label", sort="-x", title="", axis=alt.Axis(labelLimit=300)),
-        tooltip=["player", "market_value_eur", "origin_club", "destination_club", "status", "certainty_score"]
+        tooltip=["player", "certainty_score", "market_value_eur", "origin_club", "destination_club", "status"]
     ).properties(height=400)
 
     st.altair_chart(chart, use_container_width=True)
