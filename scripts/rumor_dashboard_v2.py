@@ -3,7 +3,7 @@ import pandas as pd
 import altair as alt
 
 # Load structured file (you can update the path to the new dataset)
-df = pd.read_csv("data/fabrizio_may_to_june_structured_v2.csv")
+df = pd.read_csv("data/transfer_rumors_with_tags_and_bins.csv")
 
 st.set_page_config(page_title="Transfer Credibility Dashboard (v2)", layout="wide")
 st.title("🎯 Transfer Credibility Dashboard (Powered by MITCHARD v2)")
